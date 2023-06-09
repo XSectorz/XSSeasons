@@ -44,6 +44,7 @@ public final class XSSeasons extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
         Bukkit.getLogger().info("§x§f§f§a§c§2§f******************************");
         Bukkit.getLogger().info("§x§f§f§a§c§2§f   XSAPI Seasons v1.0     ");
         Bukkit.getLogger().info("§r");

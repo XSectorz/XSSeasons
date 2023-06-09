@@ -43,6 +43,9 @@ public class xsapi_seasons extends PlaceholderExpansion {
         if(params.equalsIgnoreCase("current_seasons")) {
             return SeasonsHandler.getDataSeasonInterface().getSeason_str();
         }
+        if(params.equalsIgnoreCase("current_seasons_realName")) {
+            return SeasonsHandler.getDataSeasonInterface().getSeasonRealName();
+        }
         if(params.equalsIgnoreCase("year")) {
             return String.valueOf(SeasonsHandler.getYear());
         }

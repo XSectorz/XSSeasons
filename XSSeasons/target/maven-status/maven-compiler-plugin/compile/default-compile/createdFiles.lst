@@ -1,5 +1,6 @@
 net\xsapi\panat\xsseasons\core\SeasonsInterface.class
 net\xsapi\panat\xsseasons\api\XSAPISeasons.class
+net\xsapi\panat\xsseasons\core\SeasonsHandler$1.class
 net\xsapi\panat\xsseasons\core\SeasonsHandler.class
 net\xsapi\panat\xsseasons\configurations\loadConfig.class
 net\xsapi\panat\xsseasons\configurations\config.class

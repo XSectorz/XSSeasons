@@ -5,6 +5,7 @@ import net.xsapi.panat.xsseasons.configurations.data;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 
@@ -78,6 +79,7 @@ public class SeasonsHandler {
         return SeasonsHandler.year;
     }
 
+
     public void syncWorldTime() {
         int hours = getHour();
         int minutes = getMinutes();
@@ -102,10 +104,21 @@ public class SeasonsHandler {
                 time = time - 24000;
             }
 
+
             //Bukkit.getLogger().info("SET TIME: " + worldName + " AT : " + time);
             //Bukkit.getLogger().info("SYSTEM TIME: " + hours + " : " + minutes);
 
             world.setTime(time);
+
+            if(time == 1000) {
+                Bukkit.getScheduler().scheduleSyncDelayedTask(XSSeasons.getPlugin(), new Runnable() {
+                    @Override
+                    public void run() {
+                        world.setTime(1001);
+                    }
+                }, 20L);
+            }
+
         }
     }
 
