@@ -1,7 +1,0 @@
-name: XSSeasons
-version: '1.0-SNAPSHOT'
-main: net.xsapi.panat.xsseasons.core.XSSeasons
-api-version: 1.19
-authors: [ PanatXsectorZ ]
-softdepend: [PlaceholderAPI]
-description: Seasons for minecraft server
