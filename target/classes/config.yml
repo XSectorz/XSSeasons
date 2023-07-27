@@ -1,0 +1,26 @@
+
+
+Seasons_sort:
+  - "Summer"
+  - "Fall"
+  - "Spring"
+  - "Winter"
+
+World_sync:
+  - "syncWorld"
+  - "world"
+
+Seasons:
+  Summer:
+    display: "ฤดูร้อน"
+    day_period: 30
+  Fall:
+    display: "ฤดูฝน"
+    day_period: 31
+  Spring:
+    display: "ฤดูใบไม้ผลิ"
+    day_period: 30
+  Winter:
+    display: "ฤดูหนาว"
+    day_period: 31
+
