@@ -1,4 +1,16 @@
 
+database:
+  host: localhost
+  port: 3306
+  dbTable: testdb
+  user: root
+  password: password
+
+redis:
+  enable: false
+  host: localhost
+  port: 6379
+  password: ''
 
 Seasons_sort:
   - "Summer"

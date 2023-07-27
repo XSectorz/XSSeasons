@@ -7,6 +7,7 @@ import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
+import java.sql.*;
 import java.util.ArrayList;
 
 public class SeasonsHandler {
@@ -110,6 +111,8 @@ public class SeasonsHandler {
 
             world.setTime(time);
 
+            XSSeasons.redisUpdateKey();
+
             if(time == 1000) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(XSSeasons.getPlugin(), new Runnable() {
                     @Override
@@ -124,45 +127,111 @@ public class SeasonsHandler {
 
     public void loadDataSeason() {
 
-        if(data.customConfig.get("data_seasons.season") == null) {
+        if(!XSSeasons.getPlugin().getUsingMySQL()) {
+            if(data.customConfig.get("data_seasons.season") == null) {
 
-            data.customConfig.set("data_seasons.day",1);
-            data.customConfig.set("data_seasons.year",1);
-            data.customConfig.set("data_seasons.index_year_counter",0);
-            data.customConfig.set("data_seasons.time.hours",0);
-            data.customConfig.set("data_seasons.time.minutes",0);
+                data.customConfig.set("data_seasons.day",1);
+                data.customConfig.set("data_seasons.year",1);
+                data.customConfig.set("data_seasons.index_year_counter",0);
+                data.customConfig.set("data_seasons.time.hours",0);
+                data.customConfig.set("data_seasons.time.minutes",0);
 
-            SeasonsHandler.dataSeasonInterface = seasonsData.get(0);
-            SeasonsHandler.day = 1;
-            SeasonsHandler.hour = 0;
-            SeasonsHandler.minutes = 0;
-            SeasonsHandler.year = 1;
-            SeasonsHandler.indexYearCounter = 0;
+                SeasonsHandler.dataSeasonInterface = seasonsData.get(0);
+                SeasonsHandler.day = 1;
+                SeasonsHandler.hour = 0;
+                SeasonsHandler.minutes = 0;
+                SeasonsHandler.year = 1;
+                SeasonsHandler.indexYearCounter = 0;
 
-            data.save();
-            data.reload();
-            Bukkit.getLogger().info("§x§f§f§a§c§2§floaded default data complete!");
+                data.save();
+                data.reload();
+                Bukkit.getLogger().info("§x§f§f§a§c§2§floaded default data complete!");
+            } else {
+                SeasonsHandler.day = data.customConfig.getInt("data_seasons.day");
+                SeasonsHandler.year = data.customConfig.getInt("data_seasons.year");
+                SeasonsHandler.hour = data.customConfig.getInt("data_seasons.time.hours");
+                SeasonsHandler.minutes = data.customConfig.getInt("data_seasons.time.minutes");
+                SeasonsHandler.dataSeasonInterface = getSeasonByRealName(data.customConfig.getString("data_seasons.season"));
+                SeasonsHandler.indexYearCounter = data.customConfig.getInt("data_seasons.index_year_counter");
+
+                Bukkit.getConsoleSender().sendMessage("§x§f§f§a§c§2§floaded data from file complete!");
+            }
         } else {
-            SeasonsHandler.day = data.customConfig.getInt("data_seasons.day");
-            SeasonsHandler.year = data.customConfig.getInt("data_seasons.year");
-            SeasonsHandler.hour = data.customConfig.getInt("data_seasons.time.hours");
-            SeasonsHandler.minutes = data.customConfig.getInt("data_seasons.time.minutes");
-            SeasonsHandler.dataSeasonInterface = getSeasonByRealName(data.customConfig.getString("data_seasons.season"));
-            SeasonsHandler.indexYearCounter = data.customConfig.getInt("data_seasons.index_year_counter");
+            try {
+                Connection connection = DriverManager.getConnection(XSSeasons.getPlugin().getJDBC_URL(), XSSeasons.getPlugin().getUSER(), XSSeasons.getPlugin().getPASS()) ;
 
-            Bukkit.getLogger().info("§x§f§f§a§c§2§floaded data from file complete!");
+                Statement statement = connection.createStatement();
+
+                String selectQuery = "SELECT * FROM " + XSSeasons.getPlugin().getTABLE();
+
+                ResultSet resultSet = statement.executeQuery(selectQuery);
+
+                if (resultSet.next()) {
+                    String season = resultSet.getString("season");
+                    int year = resultSet.getInt("year");
+                    int yearidx = resultSet.getInt("yearidx");
+                    int day = resultSet.getInt("day");
+                    int hours = resultSet.getInt("hours");
+                    int minutes = resultSet.getInt("minutes");
+
+                    SeasonsHandler.setDataSeasonInterface(getSeasonByRealName(season));
+                    SeasonsHandler.setYear(year);
+                    SeasonsHandler.setIndexYearCounter(yearidx);
+                    SeasonsHandler.setDay(day);
+                    SeasonsHandler.setHour(hours);
+                    SeasonsHandler.setMinutes(minutes);
+                    Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Loaded data from database successfully");
+                }
+                resultSet.close();
+                statement.close();
+                connection.close();
+
+                XSSeasons.redisUpdateKey();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
     }
 
     public static void saveDataSeason() {
-        data.customConfig.set("data_seasons.season",getDataSeasonInterface().getSeasonRealName());
-        data.customConfig.set("data_seasons.day",getDay());
-        data.customConfig.set("data_seasons.year",getYear());
-        data.customConfig.set("data_seasons.index_year_counter",getIndexYearCounter());
-        data.customConfig.set("data_seasons.time.hours",getHour());
-        data.customConfig.set("data_seasons.time.minutes",getMinutes());
-        data.save();
+
+        if(!XSSeasons.getPlugin().getUsingMySQL()) {
+            data.customConfig.set("data_seasons.season",getDataSeasonInterface().getSeasonRealName());
+            data.customConfig.set("data_seasons.day",getDay());
+            data.customConfig.set("data_seasons.year",getYear());
+            data.customConfig.set("data_seasons.index_year_counter",getIndexYearCounter());
+            data.customConfig.set("data_seasons.time.hours",getHour());
+            data.customConfig.set("data_seasons.time.minutes",getMinutes());
+            data.save();
+        } else  {
+            try {
+                Connection connection = DriverManager.getConnection(XSSeasons.getPlugin().getJDBC_URL(), XSSeasons.getPlugin().getUSER(), XSSeasons.getPlugin().getPASS());
+
+                String updateQuery = "UPDATE " + XSSeasons.getPlugin().getTABLE() + " SET season=?, year=?, yearidx=?, day=?, hours=?, minutes=? LIMIT 1";
+
+                PreparedStatement preparedStatement = connection.prepareStatement(updateQuery);
+
+                // กำหนดค่าข้อมูลที่ต้องการบันทึกในตาราง
+                preparedStatement.setString(1, getDataSeasonInterface().getSeasonRealName());
+                preparedStatement.setInt(2, getYear());
+                preparedStatement.setInt(3, getIndexYearCounter());
+                preparedStatement.setInt(4, getDay());
+                preparedStatement.setInt(5, getHour());
+                preparedStatement.setInt(6, getMinutes());
+
+                preparedStatement.executeUpdate();
+
+                // ปิดทรานเซ็กชันและการเชื่อมต่อ
+                preparedStatement.close();
+                connection.close();
+
+                Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Database : §x§6§0§F§F§0§0Saved!");
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void debug() {
