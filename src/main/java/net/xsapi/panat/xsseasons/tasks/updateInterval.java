@@ -1,6 +1,8 @@
 package net.xsapi.panat.xsseasons.tasks;
 
+import net.xsapi.panat.xsseasons.configurations.config;
 import net.xsapi.panat.xsseasons.core.SeasonsHandler;
+import net.xsapi.panat.xsseasons.core.XSSeasons;
 import net.xsapi.panat.xsseasons.events.XSAPISeasonsChangeEvent;
 import net.xsapi.panat.xsseasons.events.XSAPIYearChangeEvent;
 import org.bukkit.Bukkit;
@@ -13,6 +15,21 @@ public class updateInterval extends BukkitRunnable {
     @Override
     public void run() {
 
+        if(!XSSeasons.getPlugin().isCrossServer()) {
+            updateStatus();
+        } else {
+            if(XSSeasons.getPlugin().isParent()) {
+                updateStatus();
+                XSSeasons.redisUpdateKey();
+            }
+        }
+
+        seasonHandler.syncWorldTime();
+        //SeasonsHandler.debug();
+
+    }
+
+    public void updateStatus() {
         SeasonsHandler.setMinutes(SeasonsHandler.getMinutes()+10);
 
         if(SeasonsHandler.getMinutes() >= 60) {
@@ -48,10 +65,6 @@ public class updateInterval extends BukkitRunnable {
             Bukkit.getServer().getPluginManager().callEvent(event);
             //Bukkit.broadcastMessage("NEW YEAR COMING");
         }
-
-        seasonHandler.syncWorldTime();
-        //SeasonsHandler.debug();
-
     }
 
 }

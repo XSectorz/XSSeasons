@@ -11,6 +11,7 @@ net\xsapi\panat\xsseasons\core\SeasonsSpring.class
 net\xsapi\panat\xsseasons\core\SeasonsSummer.class
 net\xsapi\panat\xsseasons\core\SeasonsWinter.class
 net\xsapi\panat\xsseasons\tasks\updateWorldTime.class
+net\xsapi\panat\xsseasons\tasks\updatePerSecs.class
 net\xsapi\panat\xsseasons\core\SeasonsFall.class
 net\xsapi\panat\xsseasons\core\Seasons.class
 net\xsapi\panat\xsseasons\core\XSSeasons.class

@@ -111,8 +111,6 @@ public class SeasonsHandler {
 
             world.setTime(time);
 
-            XSSeasons.redisUpdateKey();
-
             if(time == 1000) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(XSSeasons.getPlugin(), new Runnable() {
                     @Override
@@ -186,7 +184,11 @@ public class SeasonsHandler {
                 statement.close();
                 connection.close();
 
-                XSSeasons.redisUpdateKey();
+                if(config.customConfig.getBoolean("redis.enable")) {
+                    if(XSSeasons.getPlugin().isParent()) {
+                        XSSeasons.redisUpdateKey();
+                    }
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -244,7 +246,7 @@ public class SeasonsHandler {
         }
     }
 
-    public SeasonsInterface getSeasonByRealName(String realName) {
+    public static SeasonsInterface getSeasonByRealName(String realName) {
 
         for (SeasonsInterface seasons : XSSeasons.getSeasonsList()) {
             if(seasons.getSeasonRealName().equalsIgnoreCase(realName)) {

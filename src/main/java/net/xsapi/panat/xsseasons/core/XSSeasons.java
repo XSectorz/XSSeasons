@@ -1,15 +1,13 @@
 package net.xsapi.panat.xsseasons.core;
 
-import com.sun.org.apache.xerces.internal.impl.xs.traversers.XSDHandler;
 import net.xsapi.panat.xsseasons.configurations.config;
 import net.xsapi.panat.xsseasons.configurations.loadConfig;
 import net.xsapi.panat.xsseasons.placeholders.xsapi_seasons;
 import net.xsapi.panat.xsseasons.tasks.updateInterval;
-import net.xsapi.panat.xsseasons.tasks.updateWorldTime;
+import net.xsapi.panat.xsseasons.tasks.updatePerSecs;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import redis.clients.jedis.Jedis;
 
@@ -47,6 +45,8 @@ public final class XSSeasons extends JavaPlugin {
     }
 
     public static Jedis jedis;
+    public static int AutoSave;
+    public static int tempAutoSave;
 
     private boolean usingMySQL = false;
     private String JDBC_URL;
@@ -54,6 +54,9 @@ public final class XSSeasons extends JavaPlugin {
     private String PASS;
     private String DB_TABLE;
     private String TABLE = "XSSEASON_Data";
+
+    private boolean isParent = false;
+    private boolean isCrossServer = false;
 
     @Override
     public void onEnable() {
@@ -83,8 +86,11 @@ public final class XSSeasons extends JavaPlugin {
         } else {
             Bukkit.getConsoleSender().sendMessage("§x§f§f§c§e§2§2[XSAPI SEASONS] PlaceholderAPI: §x§f§f§5§8§5§8Not Hook");
         }
+        setUPDefault();
 
-        sqlConnection();
+        if(usingMySQL) {
+            sqlConnection();
+        }
         if(config.customConfig.getBoolean("redis.enable")) {
             redisConnection();
         }
@@ -95,6 +101,8 @@ public final class XSSeasons extends JavaPlugin {
         setMulti((10.0D / (720 / 60.0D)));
 
         BukkitTask task_1 = (new updateInterval()).runTaskTimer((Plugin) plugin, 200L, 200L);
+        BukkitTask task_2 = (new updatePerSecs()).runTaskTimer((Plugin) plugin, 20L, 20L);
+
         //BukkitTask task_2 = (new updateWorldTime()).runTaskTimer((Plugin) plugin,1L,1L);
     }
 
@@ -103,6 +111,30 @@ public final class XSSeasons extends JavaPlugin {
         Bukkit.getLogger().info("§c[XSAPI SEASONS] Plugin Disabled !");
 
         SeasonsHandler.saveDataSeason();
+    }
+
+    public static void setAutoSave(int autoSave) {
+        AutoSave = autoSave;
+    }
+
+    public static void setTempAutoSave(int temp) {
+        tempAutoSave = temp;
+    }
+
+    public static int getTempAutoSave() {
+        return tempAutoSave;
+    }
+
+    public static int getAutoSave() {
+        return AutoSave;
+    }
+
+    public boolean isParent() {
+        return isParent;
+    }
+
+    public boolean isCrossServer() {
+        return isCrossServer;
     }
 
     public boolean getUsingMySQL() {
@@ -127,6 +159,14 @@ public final class XSSeasons extends JavaPlugin {
 
     public String getTABLE() {
         return TABLE;
+    }
+
+    public void setUPDefault() {
+        this.isParent = config.customConfig.getBoolean("cross-server.parent_mode");
+        this.isCrossServer = config.customConfig.getBoolean("cross-server.enable");
+        this.usingMySQL = config.customConfig.getBoolean("database.enable");
+        setAutoSave(config.customConfig.getInt("auto_save"));
+        setTempAutoSave(config.customConfig.getInt("auto_save"));
     }
 
     public void sqlConnection() {
@@ -167,7 +207,6 @@ public final class XSSeasons extends JavaPlugin {
                 statement.close();
             }
             connection.close();
-            usingMySQL = true;
 
             Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Database : §x§6§0§F§F§0§0Connected");
         } catch (SQLException e) {
@@ -203,10 +242,28 @@ public final class XSSeasons extends JavaPlugin {
             jedis.set("hours", String.valueOf(SeasonsHandler.getHour()));
             jedis.set("minutes", String.valueOf(SeasonsHandler.getMinutes()));
 
-            Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Redis Server : §x§6§0§F§F§0§0Updated Key!");
+       //    Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Redis Server : §x§6§0§F§F§0§0Updated Key!");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void redisGetKey() {
+        String season = jedis.get("season");
+        int year = Integer.parseInt(jedis.get("year"));
+        int yearidx = Integer.parseInt(jedis.get("yearidx"));
+        int day = Integer.parseInt(jedis.get("day"));
+        int hours = Integer.parseInt(jedis.get("hours"));
+        int minutes = Integer.parseInt(jedis.get("minutes"));
+
+        SeasonsHandler.setDataSeasonInterface(SeasonsHandler.getSeasonByRealName(season));
+        SeasonsHandler.setYear(year);
+        SeasonsHandler.setIndexYearCounter(yearidx);
+        SeasonsHandler.setDay(day);
+        SeasonsHandler.setHour(hours);
+        SeasonsHandler.setMinutes(minutes);
+
+      //  Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Redis Server : §x§6§0§F§F§0§0Get Key!");
     }
 
 }

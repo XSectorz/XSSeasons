@@ -1,5 +1,6 @@
 
 database:
+  enable: false
   host: localhost
   port: 3306
   dbTable: testdb
@@ -11,6 +12,12 @@ redis:
   host: localhost
   port: 6379
   password: ''
+
+cross-server:
+  enable: false
+  parent_mode: true
+
+auto_save: 20
 
 Seasons_sort:
   - "Summer"
