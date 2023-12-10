@@ -55,8 +55,14 @@ public final class XSSeasons extends JavaPlugin {
     private String DB_TABLE;
     private String TABLE = "XSSEASON_Data";
 
+    private static boolean usingRedius = false;
+
     private boolean isParent = false;
     private boolean isCrossServer = false;
+
+    public static boolean isUsingRedius() {
+        return usingRedius;
+    }
 
     @Override
     public void onEnable() {
@@ -179,33 +185,28 @@ public final class XSSeasons extends JavaPlugin {
         try {
             Connection connection = DriverManager.getConnection(JDBC_URL,USER,PASS);
 
-            DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet resultSet = metaData.getTables(null, null, getTABLE(), null);
-            boolean tableExists = resultSet.next();
+            Statement statement = connection.createStatement();
 
-            if(!tableExists) {
-                Statement statement = connection.createStatement();
+            String createTableQuery = "CREATE TABLE IF NOT EXISTS " + getTABLE() + " ("
+                    + "season VARCHAR(64) DEFAULT 'Summer', "
+                    + "year INT DEFAULT 1, "
+                    + "yearidx INT DEFAULT 0, "
+                    + "day INT DEFAULT 1, "
+                    + "hours INT DEFAULT 0, "
+                    + "minutes INT DEFAULT 0"
+                    + ")";
 
-                String createTableQuery = "CREATE TABLE " + getTABLE() + " ("
-                        + "season VARCHAR(64) DEFAULT 'Summer', "
-                        + "year INT DEFAULT 1, "
-                        + "yearidx INT DEFAULT 0, "
-                        + "day INT DEFAULT 1, "
-                        + "hours INT DEFAULT 0, "
-                        + "minutes INT DEFAULT 0"
-                        + ")";
+            statement.executeUpdate(createTableQuery);
 
-                statement.executeUpdate(createTableQuery);
+            Statement statementInsert = connection.createStatement();
 
-                Statement statementInsert = connection.createStatement();
+            String insertQuery = "INSERT INTO " + getTABLE() + " (season, year, yearidx, day, hours, minutes) "
+                    + "VALUES ('Summer', 1, 0, 1, 0, 0)";
 
-                String insertQuery = "INSERT INTO " + getTABLE() + " (season, year, yearidx, day, hours, minutes) "
-                        + "VALUES ('Summer', 1, 0, 1, 0, 0)";
+            statementInsert.executeUpdate(insertQuery);
+            statementInsert.close();
+            statement.close();
 
-                statementInsert.executeUpdate(insertQuery);
-                statementInsert.close();
-                statement.close();
-            }
             connection.close();
 
             Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Database : §x§6§0§F§F§0§0Connected");
@@ -226,6 +227,7 @@ public final class XSSeasons extends JavaPlugin {
                 jedis.auth(password);
             }
             jedis.close();
+            usingRedius = true;
             Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Redis Server : §x§6§0§F§F§0§0Connected");
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage("§x§E§7§F§F§0§0[XSAPI SEASONS] Redis Server : §x§C§3§0§C§2§ANot Connected");

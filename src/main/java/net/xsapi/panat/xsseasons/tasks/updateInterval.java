@@ -15,13 +15,17 @@ public class updateInterval extends BukkitRunnable {
     @Override
     public void run() {
 
-        if(!XSSeasons.getPlugin().isCrossServer()) {
-            updateStatus();
-        } else {
-            if(XSSeasons.getPlugin().isParent()) {
+        if(XSSeasons.isUsingRedius()) {
+            if(!XSSeasons.getPlugin().isCrossServer()) {
                 updateStatus();
-                XSSeasons.redisUpdateKey();
+            } else {
+                if(XSSeasons.getPlugin().isParent()) {
+                    updateStatus();
+                    XSSeasons.redisUpdateKey();
+                }
             }
+        } else {
+            updateStatus();
         }
 
         seasonHandler.syncWorldTime();
